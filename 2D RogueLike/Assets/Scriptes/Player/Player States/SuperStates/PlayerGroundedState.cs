@@ -9,6 +9,7 @@ namespace Player
     {
         protected int XInput;
         private bool _jumpInput;
+        private bool _isGrounded;
         public PlayerGroundedState(Player player, PlayerStateMachine playerStateMachine, PlayerData playerData, string animBoolName) : base(player, playerStateMachine, playerData, animBoolName)
         {
         }
@@ -16,6 +17,8 @@ namespace Player
         public override void DoCheck()
         {
             base.DoCheck();
+            Player.JumpState.ResetAmountOfJumpsLeft(); 
+            _isGrounded = Player.CheckIfGrounded();
         }
 
         public override void Enter()
@@ -34,10 +37,16 @@ namespace Player
             XInput = Player.InputHandler.NormInputX;
             _jumpInput = Player.InputHandler.JumpInput;
 
-            if (_jumpInput && Player.CheckIfGrounded())
+            if (_jumpInput && Player.JumpState.CanJump())
             {
                 Player.InputHandler.UseJumpInput();
                 StateMachine.ChangeState(Player.JumpState);
+
+            }
+            else if (!_isGrounded)
+            {
+                Player.InAirState.StartCoyoteTime();
+                StateMachine.ChangeState(Player.InAirState);
             }
         }
 
